@@ -26,16 +26,22 @@ def creators(message):
     bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=markup)
 
 
+@bot.message_handler(content_types=['photo', 'video', 'voice', 'audio', 'image', 'sticker'])
+def error(message):
+    bot.reply_to(message, '🚫Ошибка: неверный формат ввода🚫')
+
+
+
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     if call.data == 'genre':
         print('Пользователь нажал кнопку: "Жанры"')
-        bot.send_message(call.message.chat.id, 'Введите жанр фильма')
+        bot.send_message(call.message.chat.id, '😭Введите жанр фильма🤣')
     elif call.data == 'years':
         print('Пользователь нажал кнопку: "Года"')
         bot.send_message(call.message.chat.id, '🕜Введите диапазон лет🕜')
     elif call.data == 'name':
         print('Пользователь нажал кнопку "Поиск по названию"')
-        bot.send_message(call.message.chat.id, 'Введите название фильма')
+        bot.send_message(call.message.chat.id, '📽Введите название фильма📽')
 
 bot.polling(none_stop=True)
