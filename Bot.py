@@ -2,6 +2,7 @@ import telebot
 from telebot import types
 
 bot = telebot.TeleBot('6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4')
+denied_types = ['photo', 'video', 'voice', 'audio', 'image', 'sticker']
 
 
 @bot.message_handler(commands=['start', 'creators'])
@@ -25,9 +26,14 @@ def start(message):
         bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=markup)
 
 
-@bot.message_handler(content_types=['photo', 'video', 'voice', 'audio', 'image', 'sticker'])
-def error(message):
-    bot.reply_to(message, '🚫Ошибка: неверный формат ввода🚫')
+@bot.message_handler(content_types=['photo', 'video', 'voice', 'audio', 'image', 'sticker', 'text'])
+def text(message):
+    if message.text is None:
+        bot.reply_to(message, '🚫Ошибка: неверный формат ввода🚫')
+    else:
+        pass
+
+
 
 
 @bot.callback_query_handler(func=lambda call: True)
