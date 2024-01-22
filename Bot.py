@@ -2,7 +2,6 @@ import telebot
 from telebot import types
 
 bot = telebot.TeleBot('6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4')
-denied_types = ['photo', 'video', 'voice', 'audio', 'image', 'sticker']
 
 
 @bot.message_handler(commands=['start', 'creators'])
