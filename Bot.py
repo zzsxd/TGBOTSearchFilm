@@ -134,7 +134,6 @@ def text(message):
                     downloaded_file = bot.download_file(file_info.file_path)  ### загрузка обложки
                     user.update_pull(user_ID,
                                      downloaded_file)  ### добавление обложки в массив для добавление новой записи в БД
-                    print(user.get_players()[user_ID][3])
                     db.db_write(user.get_players()[user_ID][3])  ### запись в БД
                     user.update_reset(user_ID)  ### очистка массива
                     send_update.send_msg_update(bot, message.chat.id, 9)
