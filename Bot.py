@@ -77,7 +77,7 @@ class Film_msg:
     def __init__(self):
         super(Film_msg, self).__init__()
         self.__messages = ['Введите', 'жанр фильма', 'год фильма', 'название фильма', 'Фильмы не найдены', 'Выберите действие✅']
-        self.__msg_format = ['Название', 'Год', 'Жанр', 'Рейтинг', 'Страна', 'Время просмотра', 'Описание', 'Ссылка']
+        self.__msg_format = ['<b><i>Название</i></b>', '<b><i>Год</i></b>', '<b><i>Жанр</i></b>', '<b><i>Рейтинг</i></b>', '<b><i>Страна</i></b>', '<b><i>Время просмотра</i></b>', '<b><i>Описание</i></b>', '<b><i>Ссылка</i></b>']
 
     def send_msg_callback(self, bot_obj, chat_obj, stat):
         bot_obj.send_message(chat_id=chat_obj, text=f'{self.__messages[0]} {self.__messages[stat]}')
@@ -90,7 +90,7 @@ class Film_msg:
         bot_obj.send_message(chat_id=chat_obj, reply_markup=markup_obj, text=msg)
 
     def send_msg_photo(self, bot_obj, chat_obj, msg, photo, markup_obj=None):
-        bot_obj.send_photo(chat_id=chat_obj, photo=photo, reply_markup=markup_obj, caption=msg)
+        bot_obj.send_photo(chat_id=chat_obj, photo=photo, reply_markup=markup_obj, caption=msg, parse_mode='html')
 
     def get_messages(self):
         return self.__msg_format
@@ -160,6 +160,8 @@ def text(message):
                     send_get.send_msg_handler(bot, message.chat.id, 5, buttons.start_btns())
                 else:
                     send_get.send_msg_handler(bot, message.chat.id, 4)
+    else:
+        bot.send_message(message.chat.id, '🚫Ошибка. Введите /start, чтобы запустить бота🚫')
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
@@ -173,6 +175,8 @@ def callback(call):
             send.send_msg_callback(bot, call.message.chat.id, 2)
         elif call.data == 'name':
             send.send_msg_callback(bot, call.message.chat.id, 3)
+    else:
+        bot.send_message(call.message.chat.id, '🚫Ошибка. Введите /start, чтобы запустить бота🚫')
 
 
 user = User_data()
