@@ -82,12 +82,15 @@ class Film_msg:
     def send_msg_callback(self, bot_obj, chat_obj, stat):
         bot_obj.send_message(chat_id=chat_obj, text=f'{self.__messages[0]} {self.__messages[stat]}')
 
-    def send_msg_handler(self, bot_obj, chat_obj, markup_obj, stat):
+    def send_msg_handler(self, bot_obj, chat_obj, stat, markup_obj=None):
         if type(stat) is int:
             msg = self.__messages[stat]
         else:
             msg = stat
         bot_obj.send_message(chat_id=chat_obj, reply_markup=markup_obj, text=msg)
+
+    def send_msg_photo(self, bot_obj, chat_obj, msg, photo, markup_obj=None):
+        bot_obj.send_photo(chat_id=chat_obj, photo=photo, reply_markup=markup_obj, caption=msg)
 
     def get_messages(self):
         return self.__msg_format
@@ -146,13 +149,17 @@ def text(message):
                 if query is not None:
                     for film in query:
                         msg = ''
-                        for line in range(len(film[:-1])):
-                            msg += f'{send_get.get_messages()[line]}: {film[line]}\n'
-                        send_get.send_msg_handler(bot, message.chat.id, False, msg)
+                        photo = b''
+                        for line in range(len(film)):
+                            if line < 5:
+                                msg += f'{send_get.get_messages()[line]}: {film[line]}\n'
+                            else:
+                                photo = film[line]
+                        send_get.send_msg_photo(bot, message.chat.id, msg, photo)
                     user.get_players()[user_ID][4] = None
-                    send_get.send_msg_handler(bot, message.chat.id, buttons.start_btns(), 5)
+                    send_get.send_msg_handler(bot, message.chat.id, 5, buttons.start_btns())
                 else:
-                    send_get.send_msg_handler(bot, message.chat.id, False, 4)
+                    send_get.send_msg_handler(bot, message.chat.id, 4)
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
