@@ -4,9 +4,9 @@
 #                     SBR                       #
 #################################################
 import telebot
-from telebot import types
-from backend import db_oper
-import copy
+import asyncio
+from backend import db_oper, Parse_films
+from Frontend import Bot_inline_btns, Update_msg, User_data, Film_msg
 
 ############static variables#####################
 TG_api = '6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4'
@@ -16,91 +16,11 @@ admins = [818895144, 1897256227]
 bot = telebot.TeleBot(TG_api)
 
 
-class Bot_inline_btns:
-    def __init__(self):
-        super(Bot_inline_btns, self).__init__()
-        self.__markup = types.InlineKeyboardMarkup(row_width=2)
-
-    def start_btns(self):
-        btn1 = types.InlineKeyboardButton('Жанры', callback_data='janre')
-        btn2 = types.InlineKeyboardButton('Года', callback_data='year')
-        btn3 = types.InlineKeyboardButton('Поиск по названию', callback_data='name')
-        self.__markup.add(btn1, btn2, btn3)
-        return self.__markup
-
-    def creators_btns(self):
-        btn1 = types.InlineKeyboardButton('Жанры', callback_data='janre')
-        btn2 = types.InlineKeyboardButton('Года', callback_data='year')
-        btn3 = types.InlineKeyboardButton('Поиск по названию', callback_data='name')
-        self.__markup.add(btn1, btn2, btn3)
-        return self.__markup
-
-
-class User_data:  ### взаимодействие со словарём состояний пользователей
-    def __init__(self):
-        super(User_data, self).__init__()
-        self.__online_users = {}
-        self.__default_admin = [True, False, 0, []]  ### [is_admin, update_db_now, update_index, current_action]
-
-    def init(self, id):  ### запускается только один раз при вводе /start
-        default_user = [False, False, 0, [], None]
-        if id not in self.__online_users.keys():
-            if id in admins:
-                default_user[0] = True
-            self.__online_users.update({id: copy.deepcopy(default_user)})
-
-    def get_players(self):
-        return self.__online_users
-
-    def update_pull(self, tg_id, data):
-        self.__online_users[tg_id][3].append(data)
-
-    def update_reset(self, tg_id):
-        self.__online_users[tg_id][0:4] = copy.deepcopy(self.__default_admin)
-
-
-class Update_msg:
-    def __init__(self):
-        super(Update_msg, self).__init__()
-        self.__messages = ['Введите', 'название', 'год', 'жанр', 'рейтинг', 'страну', 'время просмотра', 'описание', 'ссылку', 'Отправьте обложку',
-                           'Изменения успешно сохранены!', 'Завершите обновление!', 'Это не обложка!']
-
-    def send_msg_update(self, bot_obj, chat_obj, stat):
-        if stat < 8:
-            msg = f'{self.__messages[0]} {self.__messages[stat + 1]}'
-        else:
-            msg = f'{self.__messages[stat + 1]}'
-        bot_obj.send_message(chat_obj, msg)
-
-
-class Film_msg:
-    def __init__(self):
-        super(Film_msg, self).__init__()
-        self.__messages = ['Введите', 'жанр фильма', 'год фильма', 'название фильма', 'Фильмы не найдены', 'Выберите действие✅']
-        self.__msg_format = ['<b><i>Название</i></b>', '<b><i>Год</i></b>', '<b><i>Жанр</i></b>', '<b><i>Рейтинг</i></b>', '<b><i>Страна</i></b>', '<b><i>Время просмотра</i></b>', '<b><i>Описание</i></b>', '<b><i>Ссылка</i></b>']
-
-    def send_msg_callback(self, bot_obj, chat_obj, stat):
-        bot_obj.send_message(chat_id=chat_obj, text=f'{self.__messages[0]} {self.__messages[stat]}')
-
-    def send_msg_handler(self, bot_obj, chat_obj, stat, markup_obj=None):
-        if type(stat) is int:
-            msg = self.__messages[stat]
-        else:
-            msg = stat
-        bot_obj.send_message(chat_id=chat_obj, reply_markup=markup_obj, text=msg)
-
-    def send_msg_photo(self, bot_obj, chat_obj, msg, photo, markup_obj=None):
-        bot_obj.send_photo(chat_id=chat_obj, photo=photo, reply_markup=markup_obj, caption=msg, parse_mode='html')
-
-    def get_messages(self):
-        return self.__msg_format
-
-
-@bot.message_handler(commands=['start', 'creators', 'update'])
+@bot.message_handler(commands=['start', 'creators', 'add', 'update_kpun'])
 def start(message):
     command = message.text.replace('/', '')
     user_ID = message.from_user.id
-    user.init(user_ID)
+    user.init(user_ID, admins)
     send = Update_msg()
     buttons = Bot_inline_btns()
     if not user.get_players()[user_ID][1]:
@@ -111,9 +31,16 @@ def start(message):
         elif command == 'creators':
             bot.reply_to(message, 'Создатели:\nzzsxd - фронтенд составляющая бота.\nSBR - бэкенд составляющая бота.')
             bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.creators_btns())
-        elif command == 'update' and user.get_players()[user_ID][0]:
+        elif command == 'add' and user.get_players()[user_ID][0]:
             send.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][2])
             user.get_players()[user_ID][1] = True
+        elif command == 'update_kpun':
+            parser = Parse_films(bot, message.chat.id, kin_poisk_unofficial_api=['cebb7e6d-3063-476d-8701-418fd2e1ca2e',
+                                                           'c1b77152-fc57-488b-8018-32cc59c868d4',
+                                                           '24e7353e-a800-4cbb-8bb0-a6ab8a721d6c'], start_id=1995,
+                                 end_id=99999999)  ## я в ахуе у кинопоиска лимит 500 фильмов на один ключ, так что я добавил 3
+            asyncio.run(parser.kin_unofficial_parser())
+            bot.send_message(message.chat.id, 'Процесс обновления запущен')
     else:
         send.send_msg_update(bot, message.chat.id, 10)
 
