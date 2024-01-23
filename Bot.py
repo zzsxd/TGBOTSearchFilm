@@ -121,10 +121,10 @@ def start(message):
 @bot.message_handler(content_types=['photo', 'video', 'voice', 'audio', 'image', 'sticker', 'text'])
 def text(message):
     user_ID = message.from_user.id
-    send_update = Update_msg()
-    send_get = Film_msg()
-    buttons = Bot_inline_btns()
     if user_ID in user.get_players():
+        send_update = Update_msg()
+        send_get = Film_msg()
+        buttons = Bot_inline_btns()
         if message.text is None and user.get_players()[user_ID][2] != 8:
             bot.reply_to(message, '🚫Ошибка: неверный формат ввода🚫')
         else:
@@ -163,15 +163,16 @@ def text(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
-    send = Film_msg()
     user_ID = call.message.chat.id
-    user.get_players()[user_ID][4] = call.data
-    if call.data == 'janre':
-        send.send_msg_callback(bot, call.message.chat.id, 1)
-    elif call.data == 'year':
-        send.send_msg_callback(bot, call.message.chat.id, 2)
-    elif call.data == 'name':
-        send.send_msg_callback(bot, call.message.chat.id, 3)
+    if user_ID in user.get_players():
+        send = Film_msg()
+        user.get_players()[user_ID][4] = call.data
+        if call.data == 'janre':
+            send.send_msg_callback(bot, call.message.chat.id, 1)
+        elif call.data == 'year':
+            send.send_msg_callback(bot, call.message.chat.id, 2)
+        elif call.data == 'name':
+            send.send_msg_callback(bot, call.message.chat.id, 3)
 
 
 user = User_data()
