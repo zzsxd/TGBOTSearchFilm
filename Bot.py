@@ -62,7 +62,7 @@ class User_data:  ### взаимодействие со словарём сос�
 class Update_msg:
     def __init__(self):
         super(Update_msg, self).__init__()
-        self.__messages = ['Введите', 'название', 'год', 'жанр', 'описание', 'ссылку', 'рейтинг', 'страну', 'время просмотра', 'Отправьте обложку',
+        self.__messages = ['Введите', 'название', 'год', 'жанр', 'рейтинг', 'страну', 'время просмотра', 'описание', 'ссылку', 'Отправьте обложку',
                            'Изменения успешно сохранены!', 'Завершите обновление!', 'Это не обложка!']
 
     def send_msg_update(self, bot_obj, chat_obj, stat):
@@ -115,7 +115,7 @@ def start(message):
             send.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][2])
             user.get_players()[user_ID][1] = True
     else:
-        send.send_msg_update(bot, message.chat.id, 11)
+        send.send_msg_update(bot, message.chat.id, 10)
 
 
 @bot.message_handler(content_types=['photo', 'video', 'voice', 'audio', 'image', 'sticker', 'text'])
@@ -125,20 +125,21 @@ def text(message):
     send_get = Film_msg()
     buttons = Bot_inline_btns()
     if user_ID in user.get_players():
-        if message.text is None and user.get_players()[user_ID][2] != 5:
+        if message.text is None and user.get_players()[user_ID][2] != 8:
             bot.reply_to(message, '🚫Ошибка: неверный формат ввода🚫')
         else:
             if user.get_players()[user_ID][0] and user.get_players()[user_ID][1]:
-                if user.get_players()[user_ID][2] == 5 and message.text is None:  ### последний этап обновления БД
+                if user.get_players()[user_ID][2] == 8 and message.text is None:  ### последний этап обновления БД
                     file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
                     downloaded_file = bot.download_file(file_info.file_path)  ### загрузка обложки
                     user.update_pull(user_ID,
                                      downloaded_file)  ### добавление обложки в массив для добавление новой записи в БД
+                    print(user.get_players()[user_ID][3])
                     db.db_write(user.get_players()[user_ID][3])  ### запись в БД
                     user.update_reset(user_ID)  ### очистка массива
-                    send_update.send_msg_update(bot, message.chat.id, 6)
-                elif user.get_players()[user_ID][2] == 5:  ## обработка ошибки при отправке не фото
-                    send_update.send_msg_update(bot, message.chat.id, 8)
+                    send_update.send_msg_update(bot, message.chat.id, 9)
+                elif user.get_players()[user_ID][2] == 8:  ## обработка ошибки при отправке не фото
+                    send_update.send_msg_update(bot, message.chat.id, 11)
                 else:
                     user.update_pull(user_ID, message.text)  ### обновление массива
                     user.get_players()[user_ID][2] += 1  ### счётчик этапа
@@ -151,7 +152,7 @@ def text(message):
                         msg = ''
                         photo = b''
                         for line in range(len(film)):
-                            if line < 5:
+                            if line < 8:
                                 msg += f'{send_get.get_messages()[line]}: {film[line]}\n'
                             else:
                                 photo = film[line]

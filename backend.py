@@ -26,11 +26,11 @@ class db_oper:
             name text,
             year text,
             janre text,
-            desc text,
-            link text,
             rate text,
             country text,
             watchtime text,
+            desc text,
+            link text,
             cover BLOB
             )
             ''')
@@ -49,9 +49,9 @@ class db_oper:
         if mode == 'year' and '-' in data:
             years.extend(data.split('-'))
             print(mode, years)
-            self.cursor.execute(f'SELECT name, year, janre, desc, link, rate, country, watchtime cover FROM films WHERE {mode} BETWEEN {years[0]} AND {years[1]} order by name')
+            self.cursor.execute(f'SELECT name, year, janre, desc, link, rate, country, watchtime, cover FROM films WHERE {mode} BETWEEN {years[0]} AND {years[1]} order by name')
         else:
-            self.cursor.execute(f'SELECT name, year, janre, desc, link, rate, country, watchtime cover FROM films WHERE {mode} LIKE "%{data}%" order by name')
+            self.cursor.execute(f'SELECT name, year, janre, desc, link, rate, country, watchtime, cover FROM films WHERE {mode} LIKE "%{data}%" order by name')
         self.db.commit()
         for i in self.cursor.fetchall():
             out.append(i)
