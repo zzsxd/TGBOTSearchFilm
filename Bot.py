@@ -6,9 +6,10 @@
 import telebot
 from telebot import types
 from backend import db_oper
+
 ############static variables#####################
 TG_api = '6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4'
-admins = [818895144] ### ID админов, добавь свой
+admins = [818895144], [1897256227]
 #################################################
 
 bot = telebot.TeleBot(TG_api)
@@ -34,13 +35,13 @@ class Bot_inline_btns:
         return self.__markup
 
 
-class User_data: ### взаимодействие со словарём состояний пользователей
+class User_data:  ### взаимодействие со словарём состояний пользователей
     def __init__(self):
         super(User_data, self).__init__()
         self.__online_users = {}
         self.__default_admin = [True, False, 0, []]  ### [is_admin, update_db_now, update_index]
 
-    def init(self, id): ### запускается только один раз при вводе /start
+    def init(self, id):  ### запускается только один раз при вводе /start
         default_user = [False, False, 0, []]
         if id not in self.__online_users.keys():
             if id in admins:
@@ -61,7 +62,8 @@ class User_data: ### взаимодействие со словарём сост
 class Add_new_entry:
     def __init__(self):
         super(Add_new_entry, self).__init__()
-        self.__massages = ['Введите', 'название', 'год', 'жанр', 'описание', 'ссылку', 'Отправьте обложку', 'Изменения успешно сохранены!', 'Завершите обновление!', 'Это не обложка!']
+        self.__massages = ['Введите', 'название', 'год', 'жанр', 'описание', 'ссылку', 'Отправьте обложку',
+                           'Изменения успешно сохранены!', 'Завершите обновление!', 'Это не обложка!']
 
     def send_msg_update(self, bot_obj, chat_obj, stat):
         if stat < 5:
@@ -80,7 +82,8 @@ def start(message):
     if not user.get_players()[user_ID][1]:
         if command == 'start':
             buttons = Bot_inline_btns()
-            bot.reply_to(message, 'Привет👋\nЯ SearchFilmBot🤖 - помогу с поиском интересного фильма!\nНапишите /creators для получения информации о создателях.')
+            bot.reply_to(message,
+                         'Привет👋\nЯ SearchFilmBot🤖 - помогу с поиском интересного фильма!\nНапишите /creators для получения информации о создателях.')
             bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.start_btns())
         elif command == 'creators':
             buttons = Bot_inline_btns()
@@ -102,39 +105,101 @@ def text(message):
             bot.reply_to(message, '🚫Ошибка: неверный формат ввода🚫')
         else:
             if user.get_players()[user_ID][0] and user.get_players()[user_ID][1]:
-                if user.get_players()[user_ID][2] == 5 and message.text is None: ### последний этап обновления БД
+                if user.get_players()[user_ID][2] == 5 and message.text is None:  ### последний этап обновления БД
                     file_info = bot.get_file(message.photo[len(message.photo) - 1].file_id)
-                    downloaded_file = bot.download_file(file_info.file_path) ### загрузка обложки
-                    user.update_pull(user_ID, downloaded_file)   ### добавление обложки в массив для добавление новой записи в БД
+                    downloaded_file = bot.download_file(file_info.file_path)  ### загрузка обложки
+                    user.update_pull(user_ID,
+                                     downloaded_file)  ### добавление обложки в массив для добавление новой записи в БД
                     db.db_write(user.get_players()[user_ID][3])  ### запись в БД
-                    user.update_reset(user_ID) ### очистка массива
+                    user.update_reset(user_ID)  ### очистка массива
                     send.send_msg_update(bot, message.chat.id, 6)
-                elif user.get_players()[user_ID][2] == 5: ## обработка ошибки при отправке не фото
+                elif user.get_players()[user_ID][2] == 5:  ## обработка ошибки при отправке не фото
                     send.send_msg_update(bot, message.chat.id, 8)
                 else:
-                    user.update_pull(user_ID, message.text) ### обновление массива
-                    user.get_players()[user_ID][2] += 1 ### счётчик этапа
-                    send.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][2]) ### отправка сообщения пользователю что ему вводить
+                    user.update_pull(user_ID, message.text)  ### обновление массива
+                    user.get_players()[user_ID][2] += 1  ### счётчик этапа
+                    send.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][
+                        2])  ### отправка сообщения пользователю что ему вводить
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     if call.data == 'genre':
         print('Пользователь нажал кнопку: "Жанры"')
-        bot.send_message(call.message.chat.id, '😭Введите жанр фильма🤣')
+        msg = bot.send_message(call.message.chat.id, 'Введите жанр фильма')
+
+        @bot.message_handler(content_types=['text'])
+        def handle_text_message(message):
+            if message.chat.id == call.message.chat.id:  # Проверяем, что сообщение отправлено в тот же чат, что и исходное нажатие кнопки
+                mode = 'genre'
+                result = db.db_read(message.text, mode)
+                if result:
+                    for film in result:
+                        msg = ''
+                        for i, item in enumerate(film):
+                            if i != 0:
+                                msg += f'{item}\n'
+                        bot.send_message(chat_id=call.message.chat.id, text=msg)
+                    bot.send_message(chat_id=call.message.chat.id, text='Выберите действие',
+                                     reply_markup=Bot_inline_btns().start_btns())
+                else:
+                    bot.send_message(chat_id=call.message.chat.id, text='Фильмы не найдены')
+
+        bot.register_next_step_handler(msg, handle_text_message)
+
+
     elif call.data == 'years':
         print('Пользователь нажал кнопку: "Года"')
-        bot.send_message(call.message.chat.id, '🕜Введите диапазон лет🕜')
+        msg = bot.send_message(call.message.chat.id, 'Введите год фильма')
+
+        @bot.message_handler(content_types=['text'])
+        def handle_text_message(message):
+            global msg
+            if message.chat.id == call.message.chat.id:  # Проверяем, что сообщение отправлено в тот же чат, что и исходное нажатие кнопки
+                mode = 'years'
+                result = db.db_read(message.text, mode)
+                if result:
+                    for film in result:
+                        msg = ''
+                        for i, item in enumerate(film):
+                            if i != 0:
+                                msg += f'{item}\n'
+                        bot.send_message(chat_id=call.message.chat.id, text=msg)
+                    bot.send_message(chat_id=call.message.chat.id, text='Выберите действие',
+                                     reply_markup=Bot_inline_btns().start_btns())
+                else:
+                    bot.send_message(chat_id=call.message.chat.id, text='Фильмы не найдены')
+            bot.register_next_step_handler(msg, handle_text_message)
+
+
     elif call.data == 'name':
-        print('Пользователь нажал кнопку "Поиск по названию"')
-        bot.send_message(call.message.chat.id, '📽Введите название фильма📽')
+        print('Пользователь нажал кнопку: "Поиск по названию"')
+        msg = bot.send_message(call.message.chat.id, 'Введите название фильма')
+
+        @bot.message_handler(content_types=['text'])
+        def handle_text_message(message):
+            global msg
+            if message.chat.id == call.message.chat.id:  # Проверяем, что сообщение отправлено в тот же чат, что и исходное нажатие кнопки
+                mode = 'name'
+                result = db.db_read(message.text, mode)
+                if result:
+                    for film in result:
+                        msg = ''
+                        for i, item in enumerate(film):
+                            if i != 0:
+                                msg += f'{item}\n'
+                        bot.send_message(chat_id=call.message.chat.id, text=msg)
+                    bot.send_message(chat_id=call.message.chat.id, text='Выберите действие',
+                                     reply_markup=Bot_inline_btns().start_btns())
+                else:
+                    bot.send_message(chat_id=call.message.chat.id, text='Фильмы не найдены')
+            bot.register_next_step_handler(msg, handle_text_message)
 
 
 user = User_data()
 db = db_oper()
 
 bot.polling(none_stop=True)
-
 
 #   вообщем, в callback для каждого метода добавь вызов функции db.db_read(data, mode)
 #   data - сообщение пользователя, mode - это режим т.е жанр, год и т.д
