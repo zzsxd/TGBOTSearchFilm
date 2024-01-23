@@ -43,12 +43,12 @@ class db_oper:
     def db_read(self, data, mode):
         out = []
         years = []
-        if mode == 'years' and '-' in data:
-            years.extend(data[1].split('-'))
-            self.cursor.execute('SELECT name, year, janre, desc, link, cover FROM films WHERE ? BETWEEN ? AND ? order by name',
-                                (mode, years[0], years[1]))
+        if mode == 'year' and '-' in data:
+            years.extend(data.split('-'))
+            print(mode, years)
+            self.cursor.execute(f'SELECT name, year, janre, desc, link, cover FROM films WHERE {mode} BETWEEN {years[0]} AND {years[1]} order by name')
         else:
-            self.cursor.execute('SELECT name, year, janre, desc, link, cover FROM films WHERE ? = ? order by name', (mode, data))
+            self.cursor.execute(f'SELECT name, year, janre, desc, link, cover FROM films WHERE {mode} LIKE "%{data}%" order by name')
         self.db.commit()
         for i in self.cursor.fetchall():
             out.append(i)
