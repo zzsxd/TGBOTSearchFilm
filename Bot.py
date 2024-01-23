@@ -9,7 +9,7 @@ from backend import db_oper
 
 ############static variables#####################
 TG_api = '6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4'
-admins = [818895144], [1897256227]
+admins = [818895144, 1897256227]
 #################################################
 
 bot = telebot.TeleBot(TG_api)
