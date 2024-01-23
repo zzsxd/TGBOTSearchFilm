@@ -62,11 +62,11 @@ class User_data:  ### взаимодействие со словарём сос�
 class Update_msg:
     def __init__(self):
         super(Update_msg, self).__init__()
-        self.__messages = ['Введите', 'название', 'год', 'жанр', 'описание', 'ссылку', 'Отправьте обложку',
+        self.__messages = ['Введите', 'название', 'год', 'жанр', 'описание', 'ссылку', 'рейтинг', 'страну', 'время просмотра', 'Отправьте обложку',
                            'Изменения успешно сохранены!', 'Завершите обновление!', 'Это не обложка!']
 
     def send_msg_update(self, bot_obj, chat_obj, stat):
-        if stat < 5:
+        if stat < 8:
             msg = f'{self.__messages[0]} {self.__messages[stat + 1]}'
         else:
             msg = f'{self.__messages[stat + 1]}'
@@ -77,7 +77,7 @@ class Film_msg:
     def __init__(self):
         super(Film_msg, self).__init__()
         self.__messages = ['Введите', 'жанр фильма', 'год фильма', 'название фильма', 'Фильмы не найдены', 'Выберите действие✅']
-        self.__msg_format = ['Название', 'Год', 'Жанр', 'Описание', 'Ссылка']
+        self.__msg_format = ['Название', 'Год', 'Жанр', 'Рейтинг', 'Страна', 'Время просмотра', 'Описание', 'Ссылка']
 
     def send_msg_callback(self, bot_obj, chat_obj, stat):
         bot_obj.send_message(chat_id=chat_obj, text=f'{self.__messages[0]} {self.__messages[stat]}')
@@ -115,7 +115,7 @@ def start(message):
             send.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][2])
             user.get_players()[user_ID][1] = True
     else:
-        send.send_msg_update(bot, message.chat.id, 7)
+        send.send_msg_update(bot, message.chat.id, 11)
 
 
 @bot.message_handler(content_types=['photo', 'video', 'voice', 'audio', 'image', 'sticker', 'text'])

@@ -28,6 +28,9 @@ class db_oper:
             janre text,
             desc text,
             link text,
+            rate text,
+            country text,
+            watchtime text,
             cover BLOB
             )
             ''')
@@ -37,7 +40,7 @@ class db_oper:
             self.cursor = self.db.cursor()
 
     def db_write(self, data):
-        self.cursor.execute('INSERT INTO films VALUES (?, ?, ?, ?, ?, ?)', (data[0], data[1], data[2], data[3], data[4], data[5]))
+        self.cursor.execute('INSERT INTO films VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]))
         self.db.commit()
 
     def db_read(self, data, mode):
@@ -46,9 +49,9 @@ class db_oper:
         if mode == 'year' and '-' in data:
             years.extend(data.split('-'))
             print(mode, years)
-            self.cursor.execute(f'SELECT name, year, janre, desc, link, cover FROM films WHERE {mode} BETWEEN {years[0]} AND {years[1]} order by name')
+            self.cursor.execute(f'SELECT name, year, janre, desc, link, rate, country, watchtime cover FROM films WHERE {mode} BETWEEN {years[0]} AND {years[1]} order by name')
         else:
-            self.cursor.execute(f'SELECT name, year, janre, desc, link, cover FROM films WHERE {mode} LIKE "%{data}%" order by name')
+            self.cursor.execute(f'SELECT name, year, janre, desc, link, rate, country, watchtime cover FROM films WHERE {mode} LIKE "%{data}%" order by name')
         self.db.commit()
         for i in self.cursor.fetchall():
             out.append(i)
