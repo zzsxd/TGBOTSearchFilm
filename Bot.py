@@ -106,7 +106,7 @@ def callback(call):
                                                                                  'c1b77152-fc57-488b-8018-32cc59c868d4',
                                                                                  '24e7353e-a800-4cbb-8bb0-a6ab8a721d6c'],
                                  start_id=1995,
-             В                    end_id=99999999)  ## я в ахуе у кинопоиска лимит 500 фильмов на один ключ, так что я добавил 3
+                                 end_id=99999999)  ## я в ахуе у кинопоиска лимит 500 фильмов на один ключ, так что я добавил 3
             asyncio.run(parser.kin_unofficial_parser())
             bot.send_message(call.message.chat.id, 'Процесс обновления запущен')
         elif call.data == 'editdb':
