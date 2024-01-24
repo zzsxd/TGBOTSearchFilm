@@ -5,6 +5,7 @@
 #################################################
 import telebot
 import asyncio
+from telebot import types
 from backend import db_oper, Parse_films
 from Frontend import Bot_inline_btns, Update_msg, User_data, Film_msg
 
@@ -16,7 +17,7 @@ admins = [818895144, 1897256227]
 bot = telebot.TeleBot(TG_api)
 
 
-@bot.message_handler(commands=['start', 'creators', 'add', 'update_kpun'])
+@bot.message_handler(commands=['start', 'creators', 'admin'])
 def start(message):
     command = message.text.replace('/', '')
     user_ID = message.from_user.id
@@ -31,16 +32,9 @@ def start(message):
         elif command == 'creators':
             bot.reply_to(message, 'Создатели:\nzzsxd - фронтенд составляющая бота.\nSBR - бэкенд составляющая бота.')
             bot.send_message(message.chat.id, 'Выберите действие✅', reply_markup=buttons.creators_btns())
-        elif command == 'add' and user.get_players()[user_ID][0]:
-            send.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][2])
-            user.get_players()[user_ID][1] = True
-        elif command == 'update_kpun':
-            parser = Parse_films(bot, message.chat.id, kin_poisk_unofficial_api=['cebb7e6d-3063-476d-8701-418fd2e1ca2e',
-                                                           'c1b77152-fc57-488b-8018-32cc59c868d4',
-                                                           '24e7353e-a800-4cbb-8bb0-a6ab8a721d6c'], start_id=1995,
-                                 end_id=99999999)  ## я в ахуе у кинопоиска лимит 500 фильмов на один ключ, так что я добавил 3
-            asyncio.run(parser.kin_unofficial_parser())
-            bot.send_message(message.chat.id, 'Процесс обновления запущен')
+        elif command == 'admin' and user.get_players()[user_ID][0]:
+            bot.reply_to(message, f'Приветствую, {message.from_user.first_name}')
+            bot.send_message(message.chat.id, 'Выбери действие✅', reply_markup=buttons.admin_buttons())
     else:
         send.send_msg_update(bot, message.chat.id, 10)
 
@@ -84,7 +78,7 @@ def text(message):
                                 photo = film[line]
                         send_get.send_msg_photo(bot, message.chat.id, msg, photo)
                     user.get_players()[user_ID][4] = None
-                    send_get.send_msg_handler(bot, message.chat.id, 5, buttons.start_btns())
+                    send_get.send_msg_handler(bot, message.chat.id, 5, buttons.developer_trebute())
                 else:
                     send_get.send_msg_handler(bot, message.chat.id, 4)
     else:
@@ -93,7 +87,9 @@ def text(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
     user_ID = call.message.chat.id
+    buttons = Bot_inline_btns()
     if user_ID in user.get_players():
+        send_msg = Update_msg()
         send = Film_msg()
         user.get_players()[user_ID][4] = call.data
         if call.data == 'janre':
@@ -102,8 +98,24 @@ def callback(call):
             send.send_msg_callback(bot, call.message.chat.id, 2)
         elif call.data == 'name':
             send.send_msg_callback(bot, call.message.chat.id, 3)
+        elif call.data == 'addfilm':
+            send_msg.send_msg_update(bot, call.message.chat.id, user.get_players()[user_ID][2])
+            user.get_players()[user_ID][1] = True
+        elif call.data == 'syncdb':
+            parser = Parse_films(bot, call.message.chat.id, kin_poisk_unofficial_api=['cebb7e6d-3063-476d-8701-418fd2e1ca2e',
+                                                                                 'c1b77152-fc57-488b-8018-32cc59c868d4',
+                                                                                 '24e7353e-a800-4cbb-8bb0-a6ab8a721d6c'],
+                                 start_id=1995,
+             В                    end_id=99999999)  ## я в ахуе у кинопоиска лимит 500 фильмов на один ключ, так что я добавил 3
+            asyncio.run(parser.kin_unofficial_parser())
+            bot.send_message(call.message.chat.id, 'Процесс обновления запущен')
+        elif call.data == 'editdb':
+            pass
+        elif call.data == 'developers':
+            bot.send_message(call.message.chat.id, 'Разработчики', reply_markup=buttons.developers())
     else:
         bot.send_message(call.message.chat.id, '🚫Ошибка. Введите /start, чтобы запустить бота🚫')
+
 
 
 user = User_data()

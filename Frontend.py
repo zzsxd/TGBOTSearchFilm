@@ -25,6 +25,24 @@ class Bot_inline_btns:
         self.__markup.add(btn1, btn2, btn3)
         return self.__markup
 
+    def admin_buttons(self):
+        btn1 = types.InlineKeyboardButton('Добавить фильм', callback_data='addfilm')
+        btn2 = types.InlineKeyboardButton('Синхронизировать БД', callback_data="syncdb")
+        btn3 = types.InlineKeyboardButton('Правка БД', callback_data='editdb')
+        self.__markup.add(btn1, btn3, btn2)
+        return self.__markup
+
+    def developer_trebute(self):
+        btn2 = types.InlineKeyboardButton('Донат', url='https://www.donationalerts.com/r/zzsnikita')
+        btn3 = types.InlineKeyboardButton('Разработчики', callback_data='developers')
+        self.__markup.add( btn2, btn3)
+        return self.__markup
+
+    def developers(self):
+        btn1 = types.InlineKeyboardButton('zzsxd', url='https://github.com/zzsxd/')
+        btn2 = types.InlineKeyboardButton('SBR', url='https://github.com/lifufkd')
+        self.__markup.add(btn1, btn2)
+        return self.__markup
 
 class User_data:  ### взаимодействие со словарём состояний пользователей
     def __init__(self):
