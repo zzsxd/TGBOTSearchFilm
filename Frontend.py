@@ -76,6 +76,8 @@ class Update_msg:
     def send_msg_update(self, bot_obj, chat_obj, stat, addition=None):
         if stat < 8:
             msg = f'{self.__messages[0]} {self.__messages[stat + 1]}'
+        elif addition is not None:
+            msg = f'{self.__messages[stat + 1]}\n{addition}'
         else:
             msg = f'{self.__messages[stat + 1]}'
         bot_obj.send_message(chat_obj, msg)

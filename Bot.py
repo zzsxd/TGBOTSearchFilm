@@ -5,12 +5,14 @@
 #################################################
 import telebot
 import asyncio
-from telebot import types
-from backend import db_oper, Parse_films
+import json
+from backend import db_oper, Parse_films, Parse_temp
 from Frontend import Bot_inline_btns, Update_msg, User_data, Film_msg
 
 ############static variables#####################
 TG_api = '6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4'
+parse_temp_file = 'parser.log'
+DB_path = 'db.sqlite3'
 admins = [818895144, 1897256227]
 #################################################
 
@@ -65,7 +67,7 @@ def text(message):
                     user.get_players()[user_ID][2] += 1  ### счётчик этапа
                     send_update.send_msg_update(bot, message.chat.id, user.get_players()[user_ID][
                         2])  ### отправка сообщения пользователю что ему вводить
-            elif user.get_players()[user_ID][4] is not None:
+            elif user.get_players()[user_ID][4] in ['janre', 'year', 'name']:
                 query = db.db_read(message.text, user.get_players()[user_ID][4])
                 if query is not None:
                     for film in query:
@@ -81,6 +83,26 @@ def text(message):
                     send_get.send_msg_handler(bot, message.chat.id, 5, buttons.developer_trebute())
                 else:
                     send_get.send_msg_handler(bot, message.chat.id, 4)
+            elif user.get_players()[user_ID][4] == 'syncdb':
+                log = Parse_temp(parse_temp_file)
+                start_id = log.get_parser_log('kinopoisk_unofficial')
+                print(len(start_id[1]))
+                apis = message.text.split(',')
+                print(apis)
+                if apis != ['*'] or len(start_id[1]) != 0:
+                    if apis != ['*']:
+                        log.update_parser_log('kinopoisk_unofficial', [start_id[0], apis])
+                    apis = start_id[1]
+                    bot.send_message(message.chat.id, 'Процесс обновления запущен')
+                    parser = Parse_films(bot, message.chat.id,
+                                         db_obj=db,
+                                         log_obj=log,
+                                         kin_poisk_unofficial_api=apis,
+                                         start_id=start_id[0],
+                                         end_id=99999999)
+                    asyncio.run(parser.kin_unofficial_parser())
+                else:
+                    bot.send_message(message.chat.id, 'Ключи не введены!')
     else:
         bot.send_message(message.chat.id, '🚫Ошибка. Введите /start, чтобы запустить бота🚫')
 
@@ -102,13 +124,7 @@ def callback(call):
             send_msg.send_msg_update(bot, call.message.chat.id, user.get_players()[user_ID][2])
             user.get_players()[user_ID][1] = True
         elif call.data == 'syncdb':
-            parser = Parse_films(bot, call.message.chat.id, kin_poisk_unofficial_api=['cebb7e6d-3063-476d-8701-418fd2e1ca2e',
-                                                                                 'c1b77152-fc57-488b-8018-32cc59c868d4',
-                                                                                 '24e7353e-a800-4cbb-8bb0-a6ab8a721d6c'],
-                                 start_id=1995,
-                                 end_id=99999999)  ## я в ахуе у кинопоиска лимит 500 фильмов на один ключ, так что я добавил 3
-            asyncio.run(parser.kin_unofficial_parser())
-            bot.send_message(call.message.chat.id, 'Процесс обновления запущен')
+            bot.send_message(call.message.chat.id, 'Введите API ключ(-и) kinopoisk_unofficial в формате *,*. Укажите "*" для использования сохраненных ключей')
         elif call.data == 'editdb':
             pass
         elif call.data == 'developers':
@@ -119,7 +135,7 @@ def callback(call):
 
 
 user = User_data()
-db = db_oper()
+db = db_oper(DB_path)
 
 bot.polling(none_stop=True)
 
