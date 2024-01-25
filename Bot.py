@@ -11,7 +11,7 @@ from Frontend import Bot_inline_btns, Update_msg, User_data, Film_msg
 
 ############static variables#####################
 TG_api = '6723388582:AAFgzZfo9KG-UE8ZDKkxsyylwLJMAkEXms4'
-parse_temp_file = 'parser.log'
+parse_temp_file = 'parser.txt'
 DB_path = 'db.sqlite3'
 admins = [818895144, 1897256227]
 #################################################
@@ -85,20 +85,19 @@ def text(message):
                     send_get.send_msg_handler(bot, message.chat.id, 4)
             elif user.get_players()[user_ID][4] == 'syncdb':
                 log = Parse_temp(parse_temp_file)
-                start_id = log.get_parser_log('kinopoisk_unofficial')
-                print(len(start_id[1]))
+                data = log.get_parser_log('kinopoisk_unofficial')
                 apis = message.text.split(',')
-                print(apis)
-                if apis != ['*'] or len(start_id[1]) != 0:
+                if apis != ['*'] or len(data[1]) != 0:
                     if apis != ['*']:
-                        log.update_parser_log('kinopoisk_unofficial', [start_id[0], apis])
-                    apis = start_id[1]
+                        log.update_parser_log('kinopoisk_unofficial', [data[0], apis])
+                    else:
+                        apis = data[1]
                     bot.send_message(message.chat.id, 'Процесс обновления запущен')
                     parser = Parse_films(bot, message.chat.id,
                                          db_obj=db,
                                          log_obj=log,
                                          kin_poisk_unofficial_api=apis,
-                                         start_id=start_id[0],
+                                         start_id=data[0],
                                          end_id=99999999)
                     asyncio.run(parser.kin_unofficial_parser())
                 else:
@@ -131,7 +130,6 @@ def callback(call):
             bot.send_message(call.message.chat.id, 'Разработчики', reply_markup=buttons.developers())
     else:
         bot.send_message(call.message.chat.id, '🚫Ошибка. Введите /start, чтобы запустить бота🚫')
-
 
 
 user = User_data()

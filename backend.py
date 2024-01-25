@@ -26,12 +26,13 @@ class Parse_temp:
         return self.read_log()[method]
 
     def update_parser_log(self, method, data):
-        last_data = self.read_log()
-        self.write_log(last_data.update({method: data}))
+        temp = self.read_log()
+        temp[method] = data
+        self.write_log(temp)
 
     def write_log(self, data):
         with open(self.__log_name, 'w') as file:
-            json.dump(data, file, sort_keys=True, indent=4)
+            json.dump(data, file, indent=4, sort_keys=True)
 
     def read_log(self):
         with open(self.__log_name, 'r') as file:
@@ -59,7 +60,7 @@ class Parse_films:
                 client = KPClient(self.__kin_poisk_apis[count // 500])
             except:
                 count = i
-                self.__log_obj.update_parser_log('kinopoisk_unofficial', [count])
+                self.__log_obj.update_parser_log('kinopoisk_unofficial', [count, self.__log_obj.read_log()['kinopoisk_unofficial'][1]])
                 break
             try:
                 film = await client.get_movie_data(i)
