@@ -97,7 +97,8 @@ class db_oper:
             watchtime text,
             desc text,
             link text,
-            cover BLOB
+            cover BLOB,
+            UNIQUE(name, year, janre, rate, country, watchtime, desc, link, cover)
             )
             ''')
             self.db.commit()
@@ -106,7 +107,7 @@ class db_oper:
             self.cursor = self.db.cursor()
 
     def db_write(self, data):
-        self.cursor.execute('INSERT INTO films VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]))
+        self.cursor.execute('INSERT OR IGNORE INTO films VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', (data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8]))
         self.db.commit()
 
     def db_read(self, data, mode):
